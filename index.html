@@ -1,87 +1,194 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fitness Tracker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; }
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; --gray: #94a3b8; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        
+        /* Состояния экранов */
+        #registration-screen, #main-dashboard { display: none; }
+
+        /* Стили карточек */
+        .card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; }
         .full-width { grid-column: span 2; }
-        h2 { margin: 0 0 10px; font-size: 14px; color: #94a3b8; }
-        .value { font-size: 24px; font-weight: bold; }
+        
+        h2 { margin: 0 0 10px; font-size: 14px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+        .value { font-size: 28px; font-weight: 800; color: var(--text); }
+        .unit { font-size: 14px; color: var(--gray); margin-left: 4px; }
+
         /* Кольцо прогресса */
-        .circle-container { position: relative; width: 80px; height: 80px; margin: 0 auto; }
-        svg { transform: rotate(-90deg); }
-        circle { fill: none; stroke-width: 6; stroke: #334155; }
-        .progress { stroke: var(--accent); stroke-dasharray: 226; stroke-dashoffset: 226; transition: 1s; }
-        .btn-add { background: var(--accent); color: var(--bg); border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 20px; }
+        .circle-container { position: relative; width: 100px; height: 100px; margin: 10px auto; }
+        svg { transform: rotate(-90deg); width: 100px; height: 100px; }
+        circle { fill: none; stroke-width: 8; stroke: #334155; }
+        .progress { stroke: var(--accent); stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 1s ease-in-out; stroke-linecap: round; }
+
+        /* Поля ввода и кнопки */
+        input, select { 
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155;
+            background: #1e293b; color: white; font-size: 16px; box-sizing: border-box;
+        }
+        .btn-main { 
+            background: var(--accent); color: #0f172a; border: none; width: 100%; padding: 16px; 
+            border-radius: 15px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer;
+        }
+        
+        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 100; }
     </style>
 </head>
 <body>
-    <div id="user-name" style="margin-bottom: 20px; font-weight: bold;">Loading...</div>
 
-    <div class="dashboard">
-        <div class="card full-width">
-            <h2>Activity (Steps)</h2>
-            <div class="value" id="steps-val">0</div>
+    <div id="loading" class="loading-overlay">Загрузка...</div>
+
+    <div id="registration-screen">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 24px;">Привет! 👋</h1>
+            <p style="color: var(--gray);">Заполни данные один раз, чтобы мы настроили твой профиль</p>
         </div>
         <div class="card">
-            <h2>Water</h2>
-            <div class="circle-container">
-                <svg width="80" height="80"><circle cx="40" cy="40" r="36"/><circle class="progress" id="water-circle" cx="40" cy="40" r="36"/></svg>
-            </div>
-            <div id="water-val">0/2L</div>
-        </div>
-        <div class="card">
-            <h2>Weight</h2>
-            <div class="value" id="weight-val">--</div>
-            <span>kg</span>
+            <input type="number" id="reg-height" placeholder="Рост (см)" inputmode="numeric">
+            <input type="number" id="reg-age" placeholder="Возраст" inputmode="numeric">
+            <select id="reg-body">
+                <option value="" disabled selected>Телосложение</option>
+                <option value="Худощавое">Худощавое</option>
+                <option value="Среднее">Среднее</option>
+                <option value="Плотное">Плотное</option>
+            </select>
+            <button class="btn-main" onclick="saveProfile()">СОЗДАТЬ ПРОФИЛЬ</button>
         </div>
     </div>
 
-    <button class="btn-add" onclick="showForm()">+ NEW ENTRY</button>
+    <div id="main-dashboard">
+        <div id="user-info" style="margin-bottom: 20px; font-size: 18px; font-weight: bold;"></div>
+        
+        <div class="dashboard">
+            <div class="card full-width">
+                <h2>Шаги сегодня</h2>
+                <div class="value" id="steps-val">0</div>
+                <div class="unit">из 10 000</div>
+            </div>
+            
+            <div class="card">
+                <h2>Вода</h2>
+                <div class="circle-container">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45"/>
+                        <circle class="progress" id="water-circle" cx="50" cy="50" r="45"/>
+                    </svg>
+                </div>
+                <div id="water-val" style="font-weight: bold;">0/2000</div>
+                <div class="unit">мл</div>
+            </div>
+
+            <div class="card">
+                <h2>Вес</h2>
+                <div style="margin-top: 25px;">
+                    <span class="value" id="weight-val">--</span>
+                    <span class="unit">кг</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-main" onclick="showEntryForm()">+ НОВАЯ ЗАПИСЬ</button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        const API_URL = 'https://script.google.com/macros/s/AKfycbylEEo6mwD3rlJtBdoLWAAwwP-1C2YbUeC5YLK5vHcSz-QTHa3bQaZJcPImQwSu7T81/exec'; // Замени после публикации
-        const user = tg.initDataUnsafe.user || { id: 12345, first_name: 'Admin' };
+        // ССЫЛКА НА ТВОЙ GAS
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxcRuW2SALRecdbYtxCO3wo7TcTDzaU8oy1QvzsFMf3VZThKisfw_F599Sy8iZplq7Q/exec';
+        
+        const user = tg.initDataUnsafe.user || { id: 12345, first_name: 'Пользователь' };
+        let userProfile = null;
 
-        document.getElementById('user-name').innerText = `Hello, ${user.first_name}!`;
-
-        // Загрузка данных
+        // Инициализация при загрузке
         fetch(`${API_URL}?userId=${user.id}&userName=${user.first_name}`)
             .then(res => res.json())
             .then(data => {
-                if (data.lastStats) {
-                    document.getElementById('steps-val').innerText = data.lastStats.steps || 0;
-                    document.getElementById('weight-val').innerText = data.lastStats.weight || '--';
-                    updateWater(data.lastStats.water, data.lastStats.waterGoal);
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.needRegistration) {
+                    document.getElementById('registration-screen').style.display = 'block';
+                } else {
+                    document.getElementById('main-dashboard').style.display = 'block';
+                    document.getElementById('user-info').innerText = `Привет, ${user.first_name}! ✨`;
+                    userProfile = data.profile;
+                    
+                    if (data.lastStats) {
+                        document.getElementById('steps-val').innerText = data.lastStats.steps || 0;
+                        document.getElementById('weight-val').innerText = data.lastStats.weight || '--';
+                        updateWaterCircle(data.lastStats.water || 0, data.lastStats.waterGoal || 2000);
+                    }
                 }
-            });
+            })
+            .catch(err => alert("Ошибка загрузки: " + err));
 
-        function updateWater(fact, goal) {
+        function updateWaterCircle(fact, goal) {
             const percent = Math.min((fact / goal) * 100, 100);
-            const offset = 226 - (226 * percent) / 100;
+            const offset = 283 - (283 * percent) / 100;
             document.getElementById('water-circle').style.strokeDashoffset = offset;
-            document.getElementById('water-val').innerText = `${fact}/${goal}ml`;
+            document.getElementById('water-val').innerText = `${fact}/${goal}`;
         }
 
-        function showForm() {
-            // В идеале тут модалка, но для теста — промпт
-            const steps = prompt("Steps today?");
-            if (steps) {
-                fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ userId: user.id, steps: steps, weight: 75, water: 1500, waterGoal: 2000 })
-                }).then(() => location.reload());
+        function saveProfile() {
+            const height = document.getElementById('reg-height').value;
+            const age = document.getElementById('reg-age').value;
+            const body = document.getElementById('reg-body').value;
+
+            if (!height || !age || !body) return alert("Заполни все поля!");
+
+            const params = new URLSearchParams();
+            params.append('type', 'register');
+            params.append('userId', user.id);
+            params.append('height', height);
+            params.append('age', age);
+            params.append('bodyType', body);
+
+            sendData(params);
+        }
+
+        function showEntryForm() {
+            const weight = prompt("Твой вес сегодня (кг)?", "70");
+            const steps = prompt("Сколько шагов прошел?", "5000");
+            const water = prompt("Сколько воды выпил (мл)?", "1500");
+
+            if (weight && steps && water) {
+                const params = new URLSearchParams();
+                params.append('userId', user.id);
+                params.append('weight', weight);
+                params.append('steps', steps);
+                params.append('water', water);
+                params.append('waterGoal', 2000);
+                // Автоматически добавляем данные из профиля
+                params.append('height', userProfile.height);
+                params.append('age', userProfile.age);
+                params.append('bodyType', userProfile.bodyType);
+
+                sendData(params);
             }
+        }
+
+        function sendData(params) {
+            tg.MainButton.show();
+            tg.MainButton.setText("СОХРАНЕНИЕ...");
+            
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(() => {
+                tg.MainButton.hide();
+                location.reload();
+            })
+            .catch(err => alert(err));
         }
     </script>
 </body>
