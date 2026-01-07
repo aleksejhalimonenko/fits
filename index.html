@@ -102,7 +102,7 @@
         tg.expand();
 
         // ССЫЛКА НА ТВОЙ GAS
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxcRuW2SALRecdbYtxCO3wo7TcTDzaU8oy1QvzsFMf3VZThKisfw_F599Sy8iZplq7Q/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzxfLZz3KulUigMh-yqCDc14zVla9rjPaqFCwR0GgWw44djHPSU0ic5T3_F1VOYgLGK/exec';
         
         const user = tg.initDataUnsafe.user || { id: 12345, first_name: 'Пользователь' };
         let userProfile = null;
@@ -174,22 +174,33 @@
             }
         }
 
-        function sendData(params) {
-            tg.MainButton.show();
-            tg.MainButton.setText("СОХРАНЕНИЕ...");
-            
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString()
-            })
-            .then(() => {
-                tg.MainButton.hide();
-                location.reload();
-            })
-            .catch(err => alert(err));
-        }
+function sendData(params) {
+    tg.MainButton.show();
+    tg.MainButton.setText("СОХРАНЕНИЕ...");
+    
+    // Превращаем параметры в объект, чтобы отправить как JSON-строку
+    const obj = Object.fromEntries(params.entries());
+
+    fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Оставляем для GAS
+        headers: {
+            'Content-Type': 'text/plain' // Важно: для no-cors лучше слать как plain text
+        },
+        body: JSON.stringify(obj)
+    })
+    .then(() => {
+        // Даем Google Script 1 секунду на запись перед перезагрузкой
+        setTimeout(() => {
+            tg.MainButton.hide();
+            location.reload();
+        }, 1000);
+    })
+    .catch(err => {
+        alert("Ошибка: " + err);
+        tg.MainButton.hide();
+    });
+}
     </script>
 </body>
 </html>
