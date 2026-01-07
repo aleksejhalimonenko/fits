@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fitness Tracker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; }
+        .full-width { grid-column: span 2; }
+        h2 { margin: 0 0 10px; font-size: 14px; color: #94a3b8; }
+        .value { font-size: 24px; font-weight: bold; }
+        /* Кольцо прогресса */
+        .circle-container { position: relative; width: 80px; height: 80px; margin: 0 auto; }
+        svg { transform: rotate(-90deg); }
+        circle { fill: none; stroke-width: 6; stroke: #334155; }
+        .progress { stroke: var(--accent); stroke-dasharray: 226; stroke-dashoffset: 226; transition: 1s; }
+        .btn-add { background: var(--accent); color: var(--bg); border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div id="user-name" style="margin-bottom: 20px; font-weight: bold;">Loading...</div>
+
+    <div class="dashboard">
+        <div class="card full-width">
+            <h2>Activity (Steps)</h2>
+            <div class="value" id="steps-val">0</div>
+        </div>
+        <div class="card">
+            <h2>Water</h2>
+            <div class="circle-container">
+                <svg width="80" height="80"><circle cx="40" cy="40" r="36"/><circle class="progress" id="water-circle" cx="40" cy="40" r="36"/></svg>
+            </div>
+            <div id="water-val">0/2L</div>
+        </div>
+        <div class="card">
+            <h2>Weight</h2>
+            <div class="value" id="weight-val">--</div>
+            <span>kg</span>
+        </div>
+    </div>
+
+    <button class="btn-add" onclick="showForm()">+ NEW ENTRY</button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const API_URL = 'ССЫЛКА_НА_ТВОЙ_GAS_WEB_APP'; // Замени после публикации
+        const user = tg.initDataUnsafe.user || { id: 12345, first_name: 'Admin' };
+
+        document.getElementById('user-name').innerText = `Hello, ${user.first_name}!`;
+
+        // Загрузка данных
+        fetch(`${API_URL}?userId=${user.id}&userName=${user.first_name}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.lastStats) {
+                    document.getElementById('steps-val').innerText = data.lastStats.steps || 0;
+                    document.getElementById('weight-val').innerText = data.lastStats.weight || '--';
+                    updateWater(data.lastStats.water, data.lastStats.waterGoal);
+                }
+            });
+
+        function updateWater(fact, goal) {
+            const percent = Math.min((fact / goal) * 100, 100);
+            const offset = 226 - (226 * percent) / 100;
+            document.getElementById('water-circle').style.strokeDashoffset = offset;
+            document.getElementById('water-val').innerText = `${fact}/${goal}ml`;
+        }
+
+        function showForm() {
+            // В идеале тут модалка, но для теста — промпт
+            const steps = prompt("Steps today?");
+            if (steps) {
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ userId: user.id, steps: steps, weight: 75, water: 1500, waterGoal: 2000 })
+                }).then(() => location.reload());
+            }
+        }
+    </script>
+</body>
+</html>
