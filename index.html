@@ -116,16 +116,17 @@
         <button class="btn-main" onclick="sendEntry()">СОХРАНИТЬ ДАННЫЕ</button>
     </div>
 
-    <script>
+<script>
         const tg = window.Telegram.WebApp;
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxNy6uMz9ZzlJtfQ4w9za-jYedHO-rTj2VGj-fScZrjvtY6SF4fp9LIT2f8VsZuDtQ/exec'; // ЗАМЕНИ НА СВОЮ!
+        // ВАЖНО: Убедись, что этот URL совпадает с последним развертыванием в Google Apps Script
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwOIq6saiwkDiOvCsGOZJDMqLOLEajYNo0Q4biXOVweoQmVuebFYFbGSgBWpTjZ2vk/exec'; 
         const user = tg.initDataUnsafe.user || { id: 12345, first_name: 'Пользователь' };
         let profile = {};
 
         tg.ready();
         tg.expand();
 
-        // Загрузка
+        // Первичная загрузка данных при открытии
         fetch(`${API_URL}?userId=${user.id}&userName=${user.first_name}`)
             .then(res => res.json())
             .then(data => {
@@ -134,20 +135,60 @@
                     document.getElementById('registration-screen').style.display = 'block';
                 } else {
                     document.getElementById('main-dashboard').style.display = 'block';
-                    profile = data.profile;
+                    profile = data.profile; // Сохраняем данные профиля (рост, возраст)
                     if (data.lastStats) updateUI(data.lastStats);
                 }
+            })
+            .catch(err => {
+                console.error("Ошибка загрузки:", err);
+                document.getElementById('loading').innerText = "Ошибка соединения";
             });
 
+        // Функция регистрации нового пользователя
+        function saveProfile() {
+            const height = document.getElementById('reg-height').value;
+            const age = document.getElementById('reg-age').value;
+            const bodyType = document.getElementById('reg-body').value;
+
+            if (!height || !age) {
+                alert("Пожалуйста, заполни рост и возраст!");
+                return;
+            }
+
+            const data = {
+                userId: user.id,
+                type: 'register',
+                height: height,
+                age: age,
+                bodyType: bodyType
+            };
+
+            tg.MainButton.show();
+            tg.MainButton.setText("СОЗДАНИЕ ПРОФИЛЯ...");
+            submit(data);
+        }
+
+        // Обновление интерфейса данными из таблицы
         function updateUI(stats) {
             document.getElementById('steps-val').innerText = stats.steps || 0;
             document.getElementById('weight-val').innerText = stats.weight || '--';
-            document.getElementById('water-text').innerText = `${stats.water || 0}/2000 мл`;
             
-            // Считаем сумму калорий из пришедших данных (если добавишь их в doGet бэкенда)
-            // Пока просто заглушка или сумма из колонок таблицы
-            const offset = 226 - (226 * Math.min((stats.water || 0) / 2000, 1)) ;
+            const waterFact = stats.water || 0;
+            const waterGoal = stats.waterGoal || 2000;
+            document.getElementById('water-text').innerText = `${waterFact}/${waterGoal} мл`;
+            
+            // Расчет кольца воды
+            const offset = 226 - (226 * Math.min(waterFact / waterGoal, 1));
             document.getElementById('water-circle').style.strokeDashoffset = offset;
+
+            // Суммируем калории за все приемы пищи
+            if (stats.meals) {
+                const totalKcal = (Number(stats.meals.breakfast) || 0) + 
+                                  (Number(stats.meals.lunch) || 0) + 
+                                  (Number(stats.meals.dinner) || 0) + 
+                                  (Number(stats.meals.snack) || 0);
+                document.getElementById('kcal-val').innerText = `${totalKcal} ккал`;
+            }
         }
 
         function openModal(type) {
@@ -170,33 +211,47 @@
                 type: 'food_entry',
                 mealType: type,
                 kcal: kcal,
-                height: profile.height, age: profile.age, bodyType: profile.bodyType
+                height: profile.height, 
+                age: profile.age, 
+                bodyType: profile.bodyType
             };
             submit(data);
         }
 
-        function sendEntry() {
-            const data = {
-                userId: user.id,
-                weight: document.getElementById('in-weight').value,
-                steps: document.getElementById('in-steps').value,
-                water: document.getElementById('in-water').value,
-                waterGoal: 2000,
-                height: profile.height, age: profile.age, bodyType: profile.bodyType
-            };
-            submit(data);
-        }
+function sendEntry() {
+    const data = {
+        userId: user.id,
+        type: 'activity', // это значение проверяется в GAS
+        weight: document.getElementById('in-weight').value,
+        steps: document.getElementById('in-steps').value,
+        water: document.getElementById('in-water').value,
+        waterGoal: 2000,
+        height: profile.height, 
+        age: profile.age, 
+        bodyType: profile.bodyType
+    };
+    submit(data);
+}
 
+        // Универсальная функция отправки данных
         function submit(payload) {
             tg.MainButton.show();
-            tg.MainButton.setText("ОТПРАВКА...");
+            tg.MainButton.setText("СОХРАНЕНИЕ...");
+            
             fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors',
+                mode: 'no-cors', // Важно для работы с Google Apps Script
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(payload)
             }).then(() => {
-                setTimeout(() => location.reload(), 1000);
+                // Небольшая задержка перед перезагрузкой, чтобы GAS успел отработать
+                setTimeout(() => {
+                    tg.MainButton.hide();
+                    location.reload();
+                }, 1200);
+            }).catch(err => {
+                alert("Ошибка при отправке");
+                tg.MainButton.hide();
             });
         }
     </script>
