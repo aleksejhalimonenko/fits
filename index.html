@@ -3,257 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fitness Tracker</title>
+    <title>Fitness Tracker Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; --gray: #94a3b8; --green: #10b981; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 20px; overflow-x: hidden; padding-bottom: 100px; }
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; --gray: #94a3b8; --green: #10b981; --red: #ef4444; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 20px; padding-bottom: 100px; }
         
         #registration-screen, #main-dashboard { display: none; }
-        .card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .full-width { grid-column: span 2; }
+        .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 15px; }
         
-        h2 { margin: 0 0 10px; font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
-        .value { font-size: 24px; font-weight: 800; }
-        .unit { font-size: 12px; color: var(--gray); }
-
-        /* Прогресс бары */
-        .circle-container { position: relative; width: 80px; height: 80px; margin: 5px auto; }
-        svg { transform: rotate(-90deg); width: 80px; height: 80px; }
-        circle { fill: none; stroke-width: 6; stroke: #334155; }
-        .progress { stroke: var(--accent); stroke-dasharray: 226; stroke-dashoffset: 226; transition: stroke-dashoffset 0.8s ease; stroke-linecap: round; }
-
-        /* Кнопки */
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .btn-main { background: var(--accent); color: #0f172a; border: none; width: 100%; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; }
-        .btn-food { background: var(--green); color: white; }
-
-        /* Модальное окно (Шторка) */
-        .modal { position: fixed; bottom: -100%; left: 0; width: 100%; background: var(--card); border-radius: 25px 25px 0 0; padding: 25px; box-sizing: border-box; transition: 0.4s; z-index: 1000; box-shadow: 0 -10px 20px rgba(0,0,0,0.5); }
-        .modal.active { bottom: 0; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 999; }
+        input, select, textarea { 
+            width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid #334155;
+            background: #0f172a; color: white; font-size: 16px; box-sizing: border-box;
+        }
         
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155; background: #111827; color: white; font-size: 16px; box-sizing: border-box; }
-        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        label { font-size: 12px; color: var(--gray); margin-left: 5px; }
+
+        .btn { 
+            background: var(--accent); color: var(--bg); border: none; padding: 15px; 
+            border-radius: 15px; font-weight: bold; width: 100%; margin-top: 10px;
+        }
+
+        .modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; 
+        }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card); width: 90%; padding: 20px; border-radius: 25px; }
+
+        .stat-val { font-size: 24px; font-weight: bold; color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <div id="loading" class="loading-overlay">Загрузка...</div>
-
-    <div id="registration-screen">
-        <div class="card">
-            <h2>Твой профиль</h2>
-            <input type="number" id="reg-height" placeholder="Рост (см)">
-            <input type="number" id="reg-age" placeholder="Возраст">
-            <select id="reg-body">
-                <option value="Среднее">Среднее телосложение</option>
-                <option value="Худощавое">Худощавое</option>
-                <option value="Плотное">Плотное</option>
-            </select>
-            <button class="btn-main" onclick="saveProfile()">СОЗДАТЬ</button>
-        </div>
+  <div id="registration-screen" class="card">
+        <h2>Регистрация</h2>
+        <input type="number" id="reg-height" placeholder="Рост (см)">
+        <input type="number" id="reg-age" placeholder="Возраст">
+        <select id="reg-body">
+            <option value="Хрупкое">Хрупкое телосложение</option>
+            <option value="Среднее">Среднее телосложение</option>
+            <option value="Плотное">Плотное телосложение</option>
+        </select>
+        <button class="btn" onclick="register()">Начать</button>
     </div>
 
     <div id="main-dashboard">
-        <div class="card full-width">
-            <h2 id="user-name">Фитнес Трекер</h2>
-            <div class="dashboard">
-                <div>
-                    <h2>Шаги</h2>
-                    <div class="value" id="steps-val">0</div>
-                </div>
-                <div>
-                    <h2>Вес</h2>
-                    <div class="value" id="weight-val">--</div>
-                </div>
-            </div>
+        <div class="card">
+            <h2 id="user-greeting">Привет!</h2>
+            <p style="color: var(--gray)">Твои показатели за сегодня</p>
         </div>
 
-        <div class="dashboard">
-            <div class="card">
-                <h2>Вода</h2>
-                <div class="circle-container">
-                    <svg viewBox="0 0 80 80">
-                        <circle cx="40" cy="40" r="36"/>
-                        <circle class="progress" id="water-circle" cx="40" cy="40" r="36"/>
-                    </svg>
-                </div>
-                <div class="unit" id="water-text">0/2000 мл</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="card" onclick="openModal('modal-food')">
+                <div class="stat-val">🍎</div>
+                <div style="font-weight: bold;">Еда</div>
+                <div id="display-today-kcal" style="font-size: 18px; color: var(--accent);">0 ккал</div>
             </div>
-            <div class="card">
-                <h2>Еда</h2>
-                <div style="font-size: 24px; margin-top: 15px;">🍎</div>
-                <div class="unit" id="kcal-val">0 ккал</div>
+            
+            <div class="card" onclick="openModal('modal-water')">
+                <div class="stat-val">💧</div>
+                <div style="font-weight: bold;">Вода</div>
+                <div id="display-today-water" style="font-size: 18px; color: var(--accent);">0 л</div>
+            </div>
+
+            <div class="card" style="grid-column: span 2;" onclick="openModal('modal-activity')">
+                <div class="stat-val" style="margin-bottom: 10px;">🏃‍♂️</div>
+                <div id="last-data-info" style="font-size: 14px; color: var(--gray); text-align: left;">
+                    Загрузка...
+                </div>
+            </div>
+			
+			
+			<div class="card" style="grid-column: span 2;">
+    <h3 style="margin: 0 0 10px 0;">⚔️ Баттл</h3>
+    <select id="compare-user-select" onchange="loadComparison()" style="margin-bottom: 10px;">
+        <option value="">Выбрать соперника...</option>
+    </select>
+    
+    <div id="compare-stats" style="display: none;">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px;">
+            <span>Вы</span>
+            <span id="compare-target-name">Соперник</span>
+        </div>
+        <label>Шаги сегодня</label>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <div style="flex: 1; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; display: flex;">
+                <div id="my-steps-bar" style="height: 100%; background: var(--accent); width: 0%;"></div>
+                <div id="target-steps-bar" style="height: 100%; background: var(--red); width: 0%;"></div>
             </div>
         </div>
+        <div id="compare-details" style="font-size: 12px; color: var(--gray);"></div>
+    </div>
+</div>
+			
+			
+			
+        </div>
+    </div>
+	
 
-        <div class="btn-group">
-            <button class="btn-main" onclick="openModal('entry')">АКТИВНОСТЬ +</button>
-            <button class="btn-main btn-food" onclick="openModal('food')">ЕДА +</button>
+	
+	
+
+    <div id="modal-water" class="modal">
+        <div class="modal-content">
+            <h3>Добавить воду 💧</h3>
+            <p style="color: var(--gray); font-size: 14px;">Сколько выпили сейчас? (в литрах)</p>
+            <input type="number" id="in-only-water" step="0.1" placeholder="0.25" inputmode="decimal">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <button class="btn" style="background: #334155; color: white;" onclick="document.getElementById('in-only-water').value = 0.25">+0.25 л</button>
+                <button class="btn" style="background: #334155; color: white;" onclick="document.getElementById('in-only-water').value = 0.5">+0.5 л</button>
+            </div>
+
+            <button class="btn" onclick="sendWater()">Добавить</button>
+            <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
         </div>
     </div>
 
-    <div id="overlay" class="modal-overlay" onclick="closeModals()"></div>
     <div id="modal-food" class="modal">
-        <h2>Добавить еду</h2>
-        <select id="food-type">
-            <option value="breakfast">Завтрак</option>
-            <option value="lunch">Обед</option>
-            <option value="dinner">Ужин</option>
-            <option value="snack">Перекус</option>
-        </select>
-        <input type="number" id="food-kcal" placeholder="Калории (ккал)" inputmode="numeric">
-        <button class="btn-main btn-food" onclick="sendFood()">СОХРАНИТЬ ЕДУ</button>
+        <div class="modal-content">
+            <h3>Записать прием пищи</h3>
+            <select id="food-type">
+                <option value="Завтрак">Завтрак</option>
+                <option value="Обед">Обед</option>
+                <option value="Ужин">Ужин</option>
+                <option value="Перекус">Перекус</option>
+                <option value="Напитки">Напитки</option>
+            </select>
+            <input type="text" id="food-name" placeholder="Что съели?">
+            <input type="number" id="food-weight" placeholder="Вес (г/шт)">
+            <input type="number" id="food-kcal" placeholder="Калории (ккал)">
+            <div class="grid-3">
+                <div><label>Белки</label><input type="number" id="food-p" placeholder="г"></div>
+                <div><label>Жиры</label><input type="number" id="food-f" placeholder="г"></div>
+                <div><label>Углев.</label><input type="number" id="food-c" placeholder="г"></div>
+            </div>
+            <button class="btn" onclick="sendFood()">Сохранить</button>
+            <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
+        </div>
     </div>
 
-    <div id="modal-entry" class="modal">
-        <h2>Активность за сегодня</h2>
-        <input type="number" id="in-weight" placeholder="Вес (кг)" step="0.1">
-        <input type="number" id="in-steps" placeholder="Шаги">
-        <input type="number" id="in-water" placeholder="Вода (мл)">
-        <button class="btn-main" onclick="sendEntry()">СОХРАНИТЬ ДАННЫЕ</button>
+    <div id="modal-activity" class="modal">
+        <div class="modal-content">
+            <h3>Активность и параметры</h3>
+            <input type="number" id="in-weight" step="0.1" placeholder="Вес утром (кг)">
+            <input type="number" id="in-steps" placeholder="Шаги за день">
+            <input type="number" id="in-water" step="0.1" placeholder="Вода (литры)">
+            <input type="text" id="in-workout" placeholder="Тренировка (какая?)">
+            <textarea id="in-notes" placeholder="Заметки/Самочувствие" rows="2"></textarea>
+            <button class="btn" onclick="sendActivity()">Сохранить</button>
+            <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
+        </div>
+    </div>
     </div>
 
-<script>
+    <script>
         const tg = window.Telegram.WebApp;
-        // ВАЖНО: Убедись, что этот URL совпадает с последним развертыванием в Google Apps Script
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwOIq6saiwkDiOvCsGOZJDMqLOLEajYNo0Q4biXOVweoQmVuebFYFbGSgBWpTjZ2vk/exec'; 
-        const user = tg.initDataUnsafe.user || { id: 12345, first_name: 'Пользователь' };
-        let profile = {};
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz1Tw6c4pNJpkd_FEOBvmsvU3QlYWXf4V-O_L2fCWc9xdBLleVFikJHmKr3TYs6Kmp6/exec'; // ЗАМЕНИ НА СВОЙ
+        const user = tg.initDataUnsafe?.user || { id: 12345, first_name: "Local" };
+        let profile = null;
 
-        tg.ready();
         tg.expand();
+        checkUser();
 
-        // Первичная загрузка данных при открытии
-        fetch(`${API_URL}?userId=${user.id}&userName=${user.first_name}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('loading').style.display = 'none';
-                if (data.needRegistration) {
-                    document.getElementById('registration-screen').style.display = 'block';
-                } else {
-                    document.getElementById('main-dashboard').style.display = 'block';
-                    profile = data.profile; // Сохраняем данные профиля (рост, возраст)
-                    if (data.lastStats) updateUI(data.lastStats);
-                }
-            })
-            .catch(err => {
-                console.error("Ошибка загрузки:", err);
-                document.getElementById('loading').innerText = "Ошибка соединения";
-            });
+        function checkUser() {
+            fetch(`${API_URL}?userId=${user.id}&userName=${encodeURIComponent(user.first_name)}`)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.needRegistration) {
+                        document.getElementById('registration-screen').style.display = 'block';
+                    } else {
+                        profile = res.profile;
+                        showDashboard(res);
+                    }
+                });
+        }
 
-        // Функция регистрации нового пользователя
-        function saveProfile() {
-            const height = document.getElementById('reg-height').value;
-            const age = document.getElementById('reg-age').value;
-            const bodyType = document.getElementById('reg-body').value;
+function showDashboard(res) {
+    // Показываем главный экран
+    document.getElementById('registration-screen').style.display = 'none';
+    document.getElementById('main-dashboard').style.display = 'block';
+    document.getElementById('user-greeting').innerText = `Привет, ${user.first_name}!`;
+    
+    // 1. Обновляем счетчик калорий на карточке Еда
+    const kcalEl = document.getElementById('display-today-kcal');
+    if (kcalEl) kcalEl.innerText = `${res.todayKcal || 0} ккал`;
+    
+    // 2. Обновляем счетчик воды на новой карточке Вода
+    const waterEl = document.getElementById('display-today-water');
+    if (waterEl) waterEl.innerText = `${res.todayWater || 0} л`;
+    
+    // 3. Обновляем блок "Последние данные" (Вес и Шаги)
+    const lastDataEl = document.getElementById('last-data-info');
+    if (res.lastStats) {
+        const weight = res.lastStats.weight && res.lastStats.weight !== "-" ? res.lastStats.weight + " кг" : "не указан";
+        const steps = res.lastStats.steps && res.lastStats.steps !== "-" ? res.lastStats.steps : "0";
+        
+        lastDataEl.innerHTML = `
+            <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155;">
+                <span>Вес утром:</span>
+                <span style="color: var(--accent);">${weight}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                <span>Шаги за день:</span>
+                <span style="color: var(--accent);">${steps}</span>
+            </div>
+        `;
+    } else {
+        lastDataEl.innerText = "Данных за сегодня еще нет. Начни заполнять!";
+    }
+}
 
-            if (!height || !age) {
-                alert("Пожалуйста, заполни рост и возраст!");
-                return;
-            }
-
+        function register() {
             const data = {
                 userId: user.id,
+                userName: user.first_name,
                 type: 'register',
-                height: height,
-                age: age,
-                bodyType: bodyType
+                height: document.getElementById('reg-height').value,
+                age: document.getElementById('reg-age').value,
+                bodyType: document.getElementById('reg-body').value
             };
-
-            tg.MainButton.show();
-            tg.MainButton.setText("СОЗДАНИЕ ПРОФИЛЯ...");
             submit(data);
         }
 
-        // Обновление интерфейса данными из таблицы
-        function updateUI(stats) {
-            document.getElementById('steps-val').innerText = stats.steps || 0;
-            document.getElementById('weight-val').innerText = stats.weight || '--';
-            
-            const waterFact = stats.water || 0;
-            const waterGoal = stats.waterGoal || 2000;
-            document.getElementById('water-text').innerText = `${waterFact}/${waterGoal} мл`;
-            
-            // Расчет кольца воды
-            const offset = 226 - (226 * Math.min(waterFact / waterGoal, 1));
-            document.getElementById('water-circle').style.strokeDashoffset = offset;
-
-            // Суммируем калории за все приемы пищи
-            if (stats.meals) {
-                const totalKcal = (Number(stats.meals.breakfast) || 0) + 
-                                  (Number(stats.meals.lunch) || 0) + 
-                                  (Number(stats.meals.dinner) || 0) + 
-                                  (Number(stats.meals.snack) || 0);
-                document.getElementById('kcal-val').innerText = `${totalKcal} ккал`;
-            }
-        }
-
-        function openModal(type) {
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById('modal-' + type).classList.add('active');
-        }
-
-        function closeModals() {
-            document.getElementById('overlay').style.display = 'none';
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-        }
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
         function sendFood() {
-            const type = document.getElementById('food-type').value;
-            const kcal = document.getElementById('food-kcal').value;
-            if (!kcal) return;
-
             const data = {
                 userId: user.id,
                 type: 'food_entry',
-                mealType: type,
-                kcal: kcal,
-                height: profile.height, 
-                age: profile.age, 
-                bodyType: profile.bodyType
+                mealType: document.getElementById('food-type').value,
+                foodName: document.getElementById('food-name').value,
+                amount: document.getElementById('food-weight').value,
+                kcal: document.getElementById('food-kcal').value,
+                p: document.getElementById('food-p').value,
+                f: document.getElementById('food-f').value,
+                c: document.getElementById('food-c').value
             };
+            if (!data.kcal) return alert("Введите калории");
             submit(data);
         }
 
-function sendEntry() {
+        function sendActivity() {
+            const data = {
+                userId: user.id,
+                type: 'activity',
+                weight: document.getElementById('in-weight').value,
+                steps: document.getElementById('in-steps').value,
+                water: document.getElementById('in-water').value,
+                workout: document.getElementById('in-workout').value,
+                notes: document.getElementById('in-notes').value
+            };
+            submit(data);
+        }
+		
+		function sendWater() {
+    const val = document.getElementById('in-only-water').value;
+    if (!val || val <= 0) return alert("Введите количество воды");
+
     const data = {
         userId: user.id,
-        type: 'activity', // это значение проверяется в GAS
-        weight: document.getElementById('in-weight').value,
-        steps: document.getElementById('in-steps').value,
-        water: document.getElementById('in-water').value,
-        waterGoal: 2000,
-        height: profile.height, 
-        age: profile.age, 
-        bodyType: profile.bodyType
+        type: 'activity', // используем тот же тип, что и для активности в GAS
+        water: val,
+        steps: "-",   // явно передаем прочерки, чтобы не перезаписывать статы
+        weight: "-",
+        workout: "-",
+        notes: "Добавление воды"
     };
     submit(data);
 }
+		
 
-        // Универсальная функция отправки данных
         function submit(payload) {
             tg.MainButton.show();
             tg.MainButton.setText("СОХРАНЕНИЕ...");
-            
             fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Важно для работы с Google Apps Script
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(payload)
             }).then(() => {
-                // Небольшая задержка перед перезагрузкой, чтобы GAS успел отработать
-                setTimeout(() => {
-                    tg.MainButton.hide();
-                    location.reload();
-                }, 1200);
-            }).catch(err => {
-                alert("Ошибка при отправке");
-                tg.MainButton.hide();
+                setTimeout(() => location.reload(), 1200);
             });
         }
+		
+		// Загрузка списка пользователей при старте
+function loadUsersList() {
+    fetch(`${API_URL}?action=getUsers&userId=${user.id}`)
+        .then(r => r.json())
+        .then(res => {
+            const select = document.getElementById('compare-user-select');
+            res.users.forEach(u => {
+                let opt = document.createElement('option');
+                opt.value = u.id;
+                opt.innerText = u.name;
+                select.appendChild(opt);
+            });
+        });
+}
+
+// Загрузка данных соперника и сравнение
+function loadComparison() {
+    const compareId = document.getElementById('compare-user-select').value;
+    if (!compareId) return;
+
+    fetch(`${API_URL}?userId=${compareId}`) // Запрашиваем данные соперника
+        .then(r => r.json())
+        .then(resTarget => {
+            // Берем текущие данные нашего профиля (они у нас уже есть в памяти)
+            // И сравниваем, например, шаги
+            const mySteps = parseInt(currentStats.lastStats.steps) || 0;
+            const targetSteps = parseInt(resTarget.lastStats.steps) || 0;
+            const total = mySteps + targetSteps || 1;
+
+            document.getElementById('compare-stats').style.display = 'block';
+            document.getElementById('my-steps-bar').style.width = (mySteps / total * 100) + '%';
+            document.getElementById('target-steps-bar').style.width = (targetSteps / total * 100) + '%';
+            
+            document.getElementById('compare-details').innerText = 
+                `У вас: ${mySteps} | У него: ${targetSteps}`;
+        });
+}
+		
+		
+		
+		
     </script>
 </body>
 </html>
