@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
     <title>Fitness Tracker Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -39,7 +39,7 @@
 </head>
 <body>
 
-  <div id="registration-screen" class="card">
+    <div id="registration-screen" class="card">
         <h2>Регистрация</h2>
         <input type="number" id="reg-height" placeholder="Рост (см)">
         <input type="number" id="reg-age" placeholder="Возраст">
@@ -77,49 +77,38 @@
                 </div>
             </div>
 			
-			
 			<div class="card" style="grid-column: span 2;">
-    <h3 style="margin: 0 0 10px 0;">⚔️ Баттл</h3>
-    <select id="compare-user-select" onchange="loadComparison()" style="margin-bottom: 10px;">
-        <option value="">Выбрать соперника...</option>
-    </select>
-    
-    <div id="compare-stats" style="display: none;">
-        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px;">
-            <span>Вы</span>
-            <span id="compare-target-name">Соперник</span>
-        </div>
-        <label>Шаги сегодня</label>
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-            <div style="flex: 1; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; display: flex;">
-                <div id="my-steps-bar" style="height: 100%; background: var(--accent); width: 0%;"></div>
-                <div id="target-steps-bar" style="height: 100%; background: var(--red); width: 0%;"></div>
+                <h3 style="margin: 0 0 10px 0;">⚔️ Баттл (за неделю)</h3>
+                <select id="compare-user-select" onchange="loadComparison()" style="margin-bottom: 10px;">
+                    <option value="">Выбрать соперника...</option>
+                </select>
+                
+                <div id="compare-stats" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px;">
+                        <span style="color: var(--accent);">Вы</span>
+                        <span id="compare-target-name" style="color: var(--red);">Соперник</span>
+                    </div>
+                    <label>Активность по шагам</label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; display: flex;">
+                            <div id="my-steps-bar" style="height: 100%; background: var(--accent); width: 0%; transition: width 0.5s;"></div>
+                            <div id="target-steps-bar" style="height: 100%; background: var(--red); width: 0%; transition: width 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div id="compare-details" style="font-size: 12px; color: var(--gray);"></div>
+                </div>
             </div>
         </div>
-        <div id="compare-details" style="font-size: 12px; color: var(--gray);"></div>
     </div>
-</div>
-			
-			
-			
-        </div>
-    </div>
-	
-
-	
-	
 
     <div id="modal-water" class="modal">
         <div class="modal-content">
             <h3>Добавить воду 💧</h3>
-            <p style="color: var(--gray); font-size: 14px;">Сколько выпили сейчас? (в литрах)</p>
             <input type="number" id="in-only-water" step="0.1" placeholder="0.25" inputmode="decimal">
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
                 <button class="btn" style="background: #334155; color: white;" onclick="document.getElementById('in-only-water').value = 0.25">+0.25 л</button>
                 <button class="btn" style="background: #334155; color: white;" onclick="document.getElementById('in-only-water').value = 0.5">+0.5 л</button>
             </div>
-
             <button class="btn" onclick="sendWater()">Добавить</button>
             <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
         </div>
@@ -160,17 +149,20 @@
             <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
         </div>
     </div>
-    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz1Tw6c4pNJpkd_FEOBvmsvU3QlYWXf4V-O_L2fCWc9xdBLleVFikJHmKr3TYs6Kmp6/exec'; // ЗАМЕНИ НА СВОЙ
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz1Tw6c4pNJpkd_FEOBvmsvU3QlYWXf4V-O_L2fCWc9xdBLleVFikJHmKr3TYs6Kmp6/exec';
         const user = tg.initDataUnsafe?.user || { id: 12345, first_name: "Local" };
-        let profile = null;
+        
+        // Глобальные переменные для работы баттла
+        let myWeeklySteps = 0;
 
         tg.expand();
-		tg.setHeaderColor('#0f172a'); // Устанавливает цвет шапки под ваш --bg
-tg.setBackgroundColor('#0f172a'); // Устанавливает цвет подложки
+        // Красим шапку в цвет фона приложения
+        tg.setHeaderColor('#0f172a');
+        tg.setBackgroundColor('#0f172a');
+
         checkUser();
 
         function checkUser() {
@@ -180,57 +172,98 @@ tg.setBackgroundColor('#0f172a'); // Устанавливает цвет под�
                     if (res.needRegistration) {
                         document.getElementById('registration-screen').style.display = 'block';
                     } else {
-                        profile = res.profile;
                         showDashboard(res);
                     }
                 });
         }
 
-function showDashboard(res) {
-    // Показываем главный экран
-    document.getElementById('registration-screen').style.display = 'none';
-    document.getElementById('main-dashboard').style.display = 'block';
-    document.getElementById('user-greeting').innerText = `Привет, ${user.first_name}!`;
-    
-    // 1. Обновляем счетчик калорий на карточке Еда
-    const kcalEl = document.getElementById('display-today-kcal');
-    if (kcalEl) kcalEl.innerText = `${res.todayKcal || 0} ккал`;
-    
-    // 2. Обновляем счетчик воды на новой карточке Вода
-    const waterEl = document.getElementById('display-today-water');
-    if (waterEl) waterEl.innerText = `${res.todayWater || 0} л`;
-    
-    // 3. Обновляем блок "Последние данные" (Вес и Шаги)
-    const lastDataEl = document.getElementById('last-data-info');
-    if (res.lastStats) {
-        const weight = res.lastStats.weight && res.lastStats.weight !== "-" ? res.lastStats.weight + " кг" : "не указан";
-        const steps = res.lastStats.steps && res.lastStats.steps !== "-" ? res.lastStats.steps : "0";
-        
-        lastDataEl.innerHTML = `
-            <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155;">
-                <span>Вес утром:</span>
-                <span style="color: var(--accent);">${weight}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-                <span>Шаги за день:</span>
-                <span style="color: var(--accent);">${steps}</span>
-            </div>
-        `;
-    } else {
-        lastDataEl.innerText = "Данных за сегодня еще нет. Начни заполнять!";
-    }
-}
+        function showDashboard(res) {
+            document.getElementById('registration-screen').style.display = 'none';
+            document.getElementById('main-dashboard').style.display = 'block';
+            document.getElementById('user-greeting').innerText = `Привет, ${user.first_name}!`;
+            
+            document.getElementById('display-today-kcal').innerText = `${res.todayKcal || 0} ккал`;
+            document.getElementById('display-today-water').innerText = `${res.todayWater || 0} л`;
+            
+            // Сохраняем свои шаги за неделю для сравнения
+            myWeeklySteps = res.weeklyStats ? res.weeklyStats.steps : 0;
 
+            const lastDataEl = document.getElementById('last-data-info');
+            if (res.lastStats) {
+                const weight = res.lastStats.weight && res.lastStats.weight !== "-" ? res.lastStats.weight + " кг" : "не указан";
+                const steps = res.lastStats.steps && res.lastStats.steps !== "-" ? res.lastStats.steps : "0";
+                
+                lastDataEl.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155;">
+                        <span>Вес утром:</span>
+                        <span style="color: var(--accent);">${weight}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                        <span>Шаги за день:</span>
+                        <span style="color: var(--accent);">${steps}</span>
+                    </div>
+                `;
+            }
+            
+            // Загружаем список соперников после отрисовки дашборда
+            loadUsersList();
+        }
+
+        function loadUsersList() {
+            fetch(`${API_URL}?action=getUsers&userId=${user.id}`)
+                .then(r => r.json())
+                .then(res => {
+                    const select = document.getElementById('compare-user-select');
+                    // Очищаем список кроме первого пункта
+                    select.innerHTML = '<option value="">Выбрать соперника...</option>';
+                    if (res.users) {
+                        res.users.forEach(u => {
+                            let opt = document.createElement('option');
+                            opt.value = u.id;
+                            opt.innerText = u.name;
+                            select.appendChild(opt);
+                        });
+                    }
+                });
+        }
+
+        function loadComparison() {
+            const compareId = document.getElementById('compare-user-select').value;
+            if (!compareId) {
+                document.getElementById('compare-stats').style.display = 'none';
+                return;
+            }
+
+            // Запрашиваем данные именно соперника через compareId
+            fetch(`${API_URL}?userId=${user.id}&compareId=${compareId}`)
+                .then(r => r.json())
+                .then(resTarget => {
+                    const targetSteps = resTarget.weeklyStats ? resTarget.weeklyStats.steps : 0;
+                    const targetName = resTarget.profile ? resTarget.profile.name : "Соперник";
+                    
+                    document.getElementById('compare-target-name').innerText = targetName;
+                    document.getElementById('compare-stats').style.display = 'block';
+                    
+                    const total = (myWeeklySteps + targetSteps) || 1;
+                    const myPercent = (myWeeklySteps / total * 100);
+                    const targetPercent = (targetSteps / total * 100);
+
+                    document.getElementById('my-steps-bar').style.width = myPercent + '%';
+                    document.getElementById('target-steps-bar').style.width = targetPercent + '%';
+                    
+                    document.getElementById('compare-details').innerHTML = 
+                        `Вы: <b>${myWeeklySteps}</b> vs ${targetName}: <b>${targetSteps}</b>`;
+                });
+        }
+
+        // Остальные функции (submit, openModal и т.д.) остаются без изменений
         function register() {
-            const data = {
-                userId: user.id,
-                userName: user.first_name,
-                type: 'register',
+            submit({
+                userId: user.id, userName: user.first_name, type: 'register',
                 height: document.getElementById('reg-height').value,
                 age: document.getElementById('reg-age').value,
                 bodyType: document.getElementById('reg-body').value
-            };
-            submit(data);
+            });
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -238,8 +271,7 @@ function showDashboard(res) {
 
         function sendFood() {
             const data = {
-                userId: user.id,
-                type: 'food_entry',
+                userId: user.id, type: 'food_entry',
                 mealType: document.getElementById('food-type').value,
                 foodName: document.getElementById('food-name').value,
                 amount: document.getElementById('food-weight').value,
@@ -253,34 +285,24 @@ function showDashboard(res) {
         }
 
         function sendActivity() {
-            const data = {
-                userId: user.id,
-                type: 'activity',
+            submit({
+                userId: user.id, type: 'activity',
                 weight: document.getElementById('in-weight').value,
                 steps: document.getElementById('in-steps').value,
                 water: document.getElementById('in-water').value,
                 workout: document.getElementById('in-workout').value,
                 notes: document.getElementById('in-notes').value
-            };
-            submit(data);
+            });
         }
 		
 		function sendWater() {
-    const val = document.getElementById('in-only-water').value;
-    if (!val || val <= 0) return alert("Введите количество воды");
-
-    const data = {
-        userId: user.id,
-        type: 'activity', // используем тот же тип, что и для активности в GAS
-        water: val,
-        steps: "-",   // явно передаем прочерки, чтобы не перезаписывать статы
-        weight: "-",
-        workout: "-",
-        notes: "Добавление воды"
-    };
-    submit(data);
-}
-		
+            const val = document.getElementById('in-only-water').value;
+            if (!val || val <= 0) return alert("Введите количество воды");
+            submit({
+                userId: user.id, type: 'activity', water: val,
+                steps: "-", weight: "-", workout: "-", notes: "Добавление воды"
+            });
+        }
 
         function submit(payload) {
             tg.MainButton.show();
@@ -294,48 +316,6 @@ function showDashboard(res) {
                 setTimeout(() => location.reload(), 1200);
             });
         }
-		
-		// Загрузка списка пользователей при старте
-function loadUsersList() {
-    fetch(`${API_URL}?action=getUsers&userId=${user.id}`)
-        .then(r => r.json())
-        .then(res => {
-            const select = document.getElementById('compare-user-select');
-            res.users.forEach(u => {
-                let opt = document.createElement('option');
-                opt.value = u.id;
-                opt.innerText = u.name;
-                select.appendChild(opt);
-            });
-        });
-}
-
-// Загрузка данных соперника и сравнение
-function loadComparison() {
-    const compareId = document.getElementById('compare-user-select').value;
-    if (!compareId) return;
-
-    fetch(`${API_URL}?userId=${compareId}`) // Запрашиваем данные соперника
-        .then(r => r.json())
-        .then(resTarget => {
-            // Берем текущие данные нашего профиля (они у нас уже есть в памяти)
-            // И сравниваем, например, шаги
-            const mySteps = parseInt(currentStats.lastStats.steps) || 0;
-            const targetSteps = parseInt(resTarget.lastStats.steps) || 0;
-            const total = mySteps + targetSteps || 1;
-
-            document.getElementById('compare-stats').style.display = 'block';
-            document.getElementById('my-steps-bar').style.width = (mySteps / total * 100) + '%';
-            document.getElementById('target-steps-bar').style.width = (targetSteps / total * 100) + '%';
-            
-            document.getElementById('compare-details').innerText = 
-                `У вас: ${mySteps} | У него: ${targetSteps}`;
-        });
-}
-		
-		
-		
-		
     </script>
 </body>
 </html>
