@@ -106,10 +106,10 @@
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
-                <div class="sub-card">
-                    <span style="font-size: 11px; color: var(--gray);">ШАГИ</span><br>
-                    <span id="last-steps" style="font-weight: bold; font-size: 18px; color: var(--accent);">-</span>
-                </div>
+                <div class="sub-card" onclick="openModal('modal-steps')" style="cursor: pointer;">
+    <span style="font-size: 11px; color: var(--gray);">ШАГИ <span style="color: var(--accent);">+</span></span><br>
+    <span id="last-steps" style="font-weight: bold; font-size: 18px; color: var(--accent);">-</span>
+</div>
                 <div class="sub-card">
                     <span style="font-size: 11px; color: var(--gray);">ВЕС</span><br>
                     <span id="last-weight" style="font-weight: bold; font-size: 18px; color: var(--accent);">-</span>
@@ -166,15 +166,24 @@
         <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
     </div></div>
 
-    <div id="modal-activity" class="modal"><div class="modal-content">
-        <h3>Итоги дня 🏃‍♂️</h3>
-        <input type="number" id="in-steps" placeholder="Шаги">
-        <input type="number" id="in-weight" step="0.1" placeholder="Вес утром">
-        <input type="text" id="in-workout" placeholder="Тренировка">
-        <textarea id="in-notes" placeholder="Заметки" rows="2"></textarea>
-        <button class="btn" onclick="sendActivity()">Обновить</button>
-        <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
-    </div></div>
+<div id="modal-activity" class="modal">
+        <div class="modal-content">
+            <h3>Итоги дня 🏃‍♂️</h3>
+            <input type="number" id="in-steps" placeholder="Шаги">
+            <input type="number" id="in-weight" step="0.1" placeholder="Вес утром">
+            <input type="text" id="in-workout" placeholder="Тренировка">
+            <textarea id="in-notes" placeholder="Заметки" rows="2"></textarea>
+            <button class="btn" onclick="sendActivity()">Обновить</button>
+            <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
+        </div>
+    </div> <div id="modal-steps" class="modal">
+        <div class="modal-content">
+            <h3>Ввести шаги 🏃‍♂️</h3>
+            <input type="number" id="quick-steps" placeholder="Сколько сегодня?">
+            <button class="btn" onclick="sendQuickSteps()">Сохранить</button>
+            <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
+        </div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -357,6 +366,23 @@ function register() {
                 setTimeout(() => location.reload(), 1000);
             });
         }
+		
+		function sendQuickSteps() {
+    const s = document.getElementById('quick-steps').value;
+    if(!s) {
+        alert("Введите количество шагов!");
+        return;
+    }
+    
+    submit({
+        userId: user.id, 
+        type: 'activity',
+        steps: s,
+        weight: "-", 
+        workout: "-", 
+        notes: "Быстрое обновление шагов"
+    });
+}
     </script>
 </body>
 </html>
