@@ -150,7 +150,9 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbz1Tw6c4pNJpkd_FEOBvmsvU3QlYWXf4V-O_L2fCWc9xdBLleVFikJHmKr3TYs6Kmp6/exec';
         const user = tg.initDataUnsafe?.user || { id: 12345, first_name: "Пользователь" };
         
-        tg.expand();
+        tg.expand(); // Развернуть на весь экран
+		tg.setHeaderColor('#0f172a'); // Установить цвет шапки (темно-синий)
+        tg.setBackgroundColor('#0f172a'); // Установить цвет фона самого приложения
         loadData();
         loadUsers();
 
