@@ -166,19 +166,37 @@
                 });
         }
 
-        function showDashboard(res) {
-            document.getElementById('registration-screen').style.display = 'none';
-            document.getElementById('main-dashboard').style.display = 'block';
-            
-            document.getElementById('user-greeting').innerText = `Привет, ${res.profile.name}!`;
-            document.getElementById('user-profile-info').innerText = `${res.profile.age} лет, ${res.profile.bodyType}`;
-            
-            document.getElementById('display-today-kcal').innerText = `${res.todayKcal || 0} ккал`;
-            document.getElementById('display-today-water').innerText = `${res.todayWater || 0} л`;
-            
-            document.getElementById('last-steps').innerText = res.lastStats.steps || "-";
-            document.getElementById('last-weight').innerText = res.lastStats.weight ? res.lastStats.weight + " кг" : "-";
+function showDashboard(res) {
+    // Скрываем регистрацию и показываем главный экран
+    document.getElementById('registration-screen').style.display = 'none';
+    document.getElementById('main-dashboard').style.display = 'block';
+    
+    // Заполнение профиля в шапке (Имя, возраст, телосложение)
+    document.getElementById('user-greeting').innerText = `Привет, ${res.profile.name}!`;
+    document.getElementById('user-profile-info').innerText = `${res.profile.age} лет, ${res.profile.bodyType}`;
+    
+    // Заполнение Ккал и Воды за сегодня
+    document.getElementById('display-today-kcal').innerText = Math.round(res.todayKcal || 0);
+    document.getElementById('display-today-water').innerText = (res.todayWater || 0) + " л";
+    
+    // Отрисовка ШАГОВ
+    document.getElementById('last-steps').innerText = res.lastStats.steps || "-";
+    
+    // --- ВОТ ЭТОТ БЛОК ДЛЯ ВЕСА ---
+    const weightEl = document.getElementById('last-weight');
+    if (res.lastStats.weight && res.lastStats.weight !== "-") {
+        let weightHtml = `${res.lastStats.weight} кг`;
+        // Если есть дата (из нашего нового doGet), добавляем её вниз маленьким шрифтом
+        if (res.lastStats.weightDate) {
+            weightHtml += `<br><span style="font-size: 10px; color: var(--gray); font-weight: normal;">за ${res.lastStats.weightDate}</span>`;
         }
+        // Используем innerHTML, чтобы сработал тег <br> (перенос строки)
+        weightEl.innerHTML = weightHtml;
+    } else {
+        weightEl.innerText = "-";
+    }
+    // ------------------------------
+}
 
         function register() {
             submit({
