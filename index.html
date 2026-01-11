@@ -197,6 +197,11 @@
         loadData();
         loadUsers();
 
+/**
+         * Загружает данные текущего пользователя или соперника с сервера.
+         * Проверяет статус регистрации и обновляет интерфейс.
+         * @param {string|null} compareId - ID пользователя для сравнения (если в режиме баттла).
+         */
         function loadData(compareId = null) {
             fetch(`${API_URL}?userId=${user.id}${compareId ? '&compareId='+compareId : ''}`)
                 .then(r => r.json())
@@ -209,6 +214,10 @@
                 }).catch(e => alert("Ошибка загрузки данных"));
         }
 
+/**
+         * Загружает список всех зарегистрированных пользователей.
+         * Используется для заполнения выпадающего списка выбора соперника.
+         */
         function loadUsers() {
             fetch(`${API_URL}?userId=${user.id}&action=getUsers`).then(r => r.json()).then(res => {
                 const select = document.getElementById('rival-select');
@@ -221,6 +230,12 @@
             });
         }
 
+/**
+         * Отображает основной экран (Dashboard) с данными.
+         * Рассчитывает статус ИМТ, заполняет карточки калорий, воды и шагов.
+         * @param {Object} res - Объект с данными от API.
+         * @param {boolean} isBattle - Флаг, указывающий, смотрим ли мы чужой профиль.
+         */
 function showDashboard(res, isBattle) {
             document.getElementById('registration-screen').style.display = 'none';
             document.getElementById('main-dashboard').style.display = 'block';
