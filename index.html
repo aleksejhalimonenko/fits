@@ -300,6 +300,7 @@ document.getElementById('display-today-water').innerText = `${todayWater} / ${no
             } else { weightEl.innerText = "-"; }
         }
 
+
         function compareWith() {
             const rid = document.getElementById('rival-select').value;
             if (rid) loadData(rid);
@@ -373,30 +374,65 @@ function register() {
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
-        function submit(payload) {
-            tg.MainButton.show(); tg.MainButton.setText("СОХРАНЕНИЕ...");
-            fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
-            .then(() => {
-                tg.MainButton.setText("ГОТОВО!");
-                setTimeout(() => location.reload(), 1000);
-            });
-        }
-		
-		function sendQuickSteps() {
-    const s = document.getElementById('quick-steps').value;
-    if(!s) {
-        alert("Введите количество шагов!");
-        return;
+
+/**
+ * Универсальная функция для отправки данных из приложения в Google Таблицу.
+ * * ЧТО ОНА ДЕЛАЕТ:
+ * 1. Визуально уведомляет пользователя о начале сохранения через MainButton Telegram.
+ * 2. Передает данные (payload) методом POST на сервер Google Apps Script.
+ * 3. Использует режим 'no-cors' для обхода ограничений безопасности браузера при работе с Google.
+ * 4. После успешной отправки обновляет данные на экране БЕЗ перезагрузки всей страницы,
+ * что делает работу приложения мгновенной и плавной.
+ * * @param {Object} payload - Объект с данными для отправки (например, сведения о еде или шагах).
+ */
+
+function submit(payload, isQuiet = false) {
+    if (!isQuiet) {
+        tg.MainButton.show();
+        tg.MainButton.setText("СОХРАНЕНИЕ...");
     }
-    
+
+    fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        if (!isQuiet) {
+            tg.MainButton.setText("ГОТОВО!");
+            setTimeout(() => {
+                tg.MainButton.hide();
+                loadData(); // Обновит всё остальное (калории и т.д.)
+            }, 500);
+        } else {
+            // В тихом режиме просто подгружаем актуальные данные в фоне
+            loadData();
+        }
+    })
+}
+		
+function sendQuickSteps() {
+    const s = document.getElementById('quick-steps').value;
+    if(!s) return alert("Введите шаги!");
+
+    // 1. ОПТИМИЗМ: Сразу меняем цифру на главном экране, не дожидаясь сервера
+    const stepsElement = document.getElementById('last-steps');
+    const oldSteps = stepsElement.innerText; // Сохраняем старое значение на случай ошибки
+    stepsElement.innerText = s; 
+    stepsElement.style.color = "var(--green)"; // Подсветим зеленым, что данные "в пути"
+
+    // 2. Закрываем модалку сразу
+    closeModals();
+
+    // 3. Отправляем на сервер в фоне
     submit({
         userId: user.id, 
         type: 'activity',
         steps: s,
         weight: "-", 
         workout: "-", 
-        notes: "Быстрое обновление шагов"
-    });
+        notes: "Быстрое обновление"
+    }, true); // Добавим флаг true, чтобы submit знал, что это тихая отправка
 }
     </script>
 </body>
