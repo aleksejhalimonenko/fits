@@ -442,16 +442,26 @@
 		tg.MainButton.setParams({
             text: "СОХРАНЕНИЕ...",
             color: "#38bdf8", // Цвет фона кнопки (твой --accent)
-            text_color: "#0f172a" // Цвет текста на кнопке (твой --bg)
+            text_color: "#0f172a", // Цвет текста на кнопке (твой --bg)
+			is_active: false // Блокируем кнопку на время запроса
         });
 		
 		tg.MainButton.show();
-		tg.MainButton.setText("СОХРАНЕНИЕ...");
+		// tg.MainButton.setText("СОХРАНЕНИЕ...");
 		}
         fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
         .then(() => {
             if (!isQuiet) {
-                tg.MainButton.setText("ГОТОВО!");
+                
+				// tg.MainButton.setText("ГОТОВО!");
+				
+				tg.MainButton.setParams({
+                    text: "ГОТОВО!",
+                    color: "#10b981", // Твой зеленый
+                    text_color: "#ffffff", // Белый текст
+                    is_active: false
+                });
+				
                 setTimeout(() => { tg.MainButton.hide(); loadData(); }, 500);
             } else loadData();
         }).catch(err => { tg.MainButton.hide(); alert("Ошибка сохранения"); });
