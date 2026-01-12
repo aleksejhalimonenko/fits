@@ -437,7 +437,17 @@
     }
 
     function submit(payload, isQuiet = false) {
-        if (!isQuiet) { tg.MainButton.show(); tg.MainButton.setText("СОХРАНЕНИЕ..."); }
+        if (!isQuiet) { 
+		
+		tg.MainButton.setParams({
+            text: "СОХРАНЕНИЕ...",
+            color: "#38bdf8", // Цвет фона кнопки (твой --accent)
+            text_color: "#0f172a" // Цвет текста на кнопке (твой --bg)
+        });
+		
+		tg.MainButton.show();
+		tg.MainButton.setText("СОХРАНЕНИЕ...");
+		}
         fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
         .then(() => {
             if (!isQuiet) {
