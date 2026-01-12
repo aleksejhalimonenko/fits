@@ -435,16 +435,15 @@ function sendQuickSteps() {
     const s = document.getElementById('quick-steps').value;
     if(!s) return alert("Введите шаги!");
 
-    // 1. ОПТИМИЗМ: Сразу меняем цифру на главном экране, не дожидаясь сервера
+    // 1. Сразу меняем цифру на экране
     const stepsElement = document.getElementById('last-steps');
-    const oldSteps = stepsElement.innerText; // Сохраняем старое значение на случай ошибки
     stepsElement.innerText = s; 
     // stepsElement.style.color = "var(--green)"; // Подсветим зеленым, что данные "в пути"
 
-    // 2. Закрываем модалку сразу
+    // 2. Закрываем модальное окно
     closeModals();
 
-    // 3. Отправляем на сервер в фоне
+    // 3. Отправляем данные (БЕЗ true и БЕЗ лишних знаков)
     submit({
         userId: user.id, 
         type: 'activity',
@@ -452,7 +451,7 @@ function sendQuickSteps() {
         weight: "-", 
         workout: "-", 
         notes: "Быстрое обновление"
-    }; // true); // Добавим флаг true, чтобы submit знал, что это тихая отправка
+    }); 
 }
     </script>
 </body>
