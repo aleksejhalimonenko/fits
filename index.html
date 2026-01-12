@@ -49,14 +49,13 @@
             transition: transform 0.2s ease;
         }
 
-        /* Эффект нажатия (оставили как был) */
         .card-active {
             transform: scale(0.92) !important;
             filter: brightness(0.8);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* --- НОВЫЕ СТИЛИ МОДАЛОК (iOS Style) --- */
+        /* --- МОДАЛКИ (iOS Style) --- */
         .modal { 
             display: flex; 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -89,11 +88,12 @@
             transform: translateY(0) scale(1);
         }
 
-        /* Остальные стили */
         input, select, textarea { 
             width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid #334155;
             background: #0f172a; color: white; font-size: 16px; box-sizing: border-box;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
         }
+
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         label { font-size: 11px; color: var(--gray); margin-left: 5px; text-transform: uppercase; }
         .btn { 
@@ -267,7 +267,6 @@
     loadData();
     loadUsers();
 
-    // Открытие/Закрытие модалок с анимацией
     function openModal(id) {
         document.getElementById(id).classList.add('active');
         document.body.classList.add('modal-open');
@@ -278,7 +277,6 @@
         document.body.classList.remove('modal-open');
     }
 
-    // Закрытие при клике на фон
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) closeModals();
     }
@@ -286,6 +284,35 @@
     function animatePress(el) {
         el.classList.add('card-active');
         setTimeout(() => el.classList.remove('card-active'), 150);
+    }
+
+    // --- ФУНКЦИИ ВОДЫ С ВИЗУАЛЬНЫМ ЭФФЕКТОМ ---
+    function adjustWater(step) {
+        const input = document.getElementById('in-only-water');
+        let current = parseFloat(input.value) || 0;
+        let newValue = (current + step).toFixed(2);
+        if (newValue < 0) newValue = 0;
+        
+        input.value = newValue;
+        
+        // Визуальный эффект
+        input.style.transform = "scale(1.15)";
+        input.style.color = step > 0 ? "var(--green)" : "var(--red)";
+        setTimeout(() => {
+            input.style.transform = "scale(1)";
+            input.style.color = "var(--accent)";
+        }, 200);
+    }
+
+    function setWaterValue(val) {
+        const input = document.getElementById('in-only-water');
+        input.value = val;
+        
+        // Визуальный эффект "прыжка"
+        input.style.transform = "scale(1.2)";
+        setTimeout(() => {
+            input.style.transform = "scale(1)";
+        }, 200);
     }
 
     function loadData(compareId = null) {
@@ -396,16 +423,6 @@
         if(!amount) return;
         closeModals();
         submit({ userId: user.id, type: 'activity', water: amount, steps: "-", weight: "-", workout: "-", notes: "Добавление воды" });
-    }
-
-    function adjustWater(step) {
-        const input = document.getElementById('in-only-water');
-        let newValue = (parseFloat(input.value || 0) + step).toFixed(2);
-        input.value = newValue < 0 ? 0 : newValue;
-    }
-
-    function setWaterValue(val) {
-        document.getElementById('in-only-water').value = val;
     }
 
     function sendActivity() {
