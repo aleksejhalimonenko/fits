@@ -147,7 +147,31 @@
         </div>
     </div>
 
-    <div id="modal-water" class="modal"><div class="modal-content">
+
+<div id="modal-water" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <h3>Вода 💧</h3>
+            
+            <input type="number" id="in-only-water" step="0.1" value="0.25" style="text-align: center; font-size: 24px; font-weight: bold; color: var(--accent);">
+            
+            <div style="display: flex; justify-content: center; gap: 15px; margin: 20px 0;">
+                <div onclick="quickAddWater(0.25)" style="cursor: pointer;">
+                    <div style="width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); border: 2px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: var(--accent); margin-bottom: 5px;">+0.25</div>
+                    <span style="font-size: 10px; color: var(--gray);">СТАКАН</span>
+                </div>
+                
+                <div onclick="quickAddWater(0.5)" style="cursor: pointer;">
+                    <div style="width: 55px; height: 55px; background: rgba(56, 189, 248, 0.1); border: 2px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: var(--accent); margin-bottom: 5px;">+0.5</div>
+                    <span style="font-size: 10px; color: var(--gray);">БУТЫЛКА</span>
+                </div>
+            </div>
+
+            <button class="btn" onclick="sendWater()">Сохранить свою</button>
+            <button class="btn" style="background:none; color:white; margin-top: 5px;" onclick="closeModals()">Отмена</button>
+        </div>
+    </div>
+
+    <div id="modal-water2" class="modal"><div class="modal-content">
         <h3>Вода 💧</h3><input type="number" id="in-only-water" step="0.1" value="0.25"><button class="btn" onclick="sendWater()">Добавить</button>
         <button class="btn" style="background:none; color:white;" onclick="closeModals()">Отмена</button>
     </div></div>
@@ -371,6 +395,16 @@ function sendWater() {
     });
 }
 
+/**
+ * Мгновенно добавляет порцию воды и отправляет данные.
+ * @param {number} amount - Объем воды в литрах (например, 0.25)
+ */
+function quickAddWater(amount) {
+    document.getElementById('in-only-water').value = amount;
+    sendWater(); // Используем уже существующую функцию отправки
+}
+
+
 function sendActivity() {
     // Закрываем окно СРАЗУ
     closeModals();
@@ -443,6 +477,14 @@ function sendQuickSteps() {
     // 2. Закрываем модальное окно
     closeModals();
 
+
+
+// 3. Отправка данных
+    /* ПОДСКАЗКА ДЛЯ СЕБЯ:
+       Чтобы вернуть "тихую" отправку (без кнопки Telegram внизу):
+       просто добавь , true перед закрывающей скобкой функции submit ниже.
+       Пример: submit({ ... }, true);
+    */
     // 3. Отправляем данные (БЕЗ true и БЕЗ лишних знаков)
     submit({
         userId: user.id, 
