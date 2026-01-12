@@ -339,37 +339,50 @@ function register() {
     submit(data);
 }
 
-        function sendFood() {
-            const kcal = document.getElementById('food-kcal').value;
-            if(!kcal) return alert("Введи Ккал!");
-            submit({
-                userId: user.id, type: 'food_entry',
-                mealType: document.getElementById('food-type').value,
-                foodName: document.getElementById('food-name').value || "Еда",
-                kcal: kcal,
-                p: document.getElementById('food-p').value || "-",
-                f: document.getElementById('food-f').value || "-",
-                c: document.getElementById('food-c').value || "-"
-            });
-        }
+function sendFood() {
+    const kcal = document.getElementById('food-kcal').value;
+    if(!kcal) return alert("Введи Ккал!");
+    
+    // Закрываем окно СРАЗУ для плавности
+    closeModals(); 
+    
+    submit({
+        userId: user.id, type: 'food_entry',
+        mealType: document.getElementById('food-type').value,
+        foodName: document.getElementById('food-name').value || "Еда",
+        kcal: kcal,
+        p: document.getElementById('food-p').value || "-",
+        f: document.getElementById('food-f').value || "-",
+        c: document.getElementById('food-c').value || "-"
+    });
+}
 
-        function sendActivity() {
-            submit({
-                userId: user.id, type: 'activity',
-                steps: document.getElementById('in-steps').value || "-",
-                weight: document.getElementById('in-weight').value || "-",
-                workout: document.getElementById('in-workout').value || "-",
-                notes: document.getElementById('in-notes').value || "-"
-            });
-        }
+function sendWater() {
+    const amount = document.getElementById('in-only-water').value;
+    if(!amount) return;
 
-        function sendWater() {
-            submit({
-                userId: user.id, type: 'activity', 
-                water: document.getElementById('in-only-water').value,
-                steps: "-", weight: "-", workout: "-", notes: "Добавление воды"
-            });
-        }
+    // Закрываем окно СРАЗУ
+    closeModals();
+
+    submit({
+        userId: user.id, type: 'activity', 
+        water: amount,
+        steps: "-", weight: "-", workout: "-", notes: "Добавление воды"
+    });
+}
+
+function sendActivity() {
+    // Закрываем окно СРАЗУ
+    closeModals();
+
+    submit({
+        userId: user.id, type: 'activity',
+        steps: document.getElementById('in-steps').value || "-",
+        weight: document.getElementById('in-weight').value || "-",
+        workout: document.getElementById('in-workout').value || "-",
+        notes: document.getElementById('in-notes').value || "-"
+    });
+}
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
@@ -398,17 +411,24 @@ function submit(payload, isQuiet = false) {
         body: JSON.stringify(payload)
     })
     .then(() => {
+        // Если это обычная отправка (не тихая)
         if (!isQuiet) {
             tg.MainButton.setText("ГОТОВО!");
             setTimeout(() => {
                 tg.MainButton.hide();
-                loadData(); // Обновит всё остальное (калории и т.д.)
+                closeModals(); // На всякий случай дублируем тут
+                loadData();    // Обновляем цифры на экране
             }, 500);
         } else {
-            // В тихом режиме просто подгружаем актуальные данные в фоне
+            // Если тихая отправка (как в шагах)
             loadData();
         }
     })
+    .catch(err => {
+        console.error(err);
+        tg.MainButton.hide();
+        alert("Ошибка при сохранении");
+    });
 }
 		
 function sendQuickSteps() {
