@@ -77,6 +77,10 @@
             transform: translateY(40px) scale(0.95);
             transition: transform 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.1), opacity 0.3s ease;
         }
+		
+		.modal-content:focus-within {
+    transform: translateY(-20px) scale(1) !important;
+}
 
         .modal.active { 
             pointer-events: auto; 
@@ -474,6 +478,31 @@
         closeModals();
         submit({ userId: user.id, type: 'activity', steps: s, weight: "-", workout: "-", notes: "Быстрое обновление" });
     }
+	
+	// Функция для настройки клавиатуры на смартфонах
+function upgradeInputs() {
+    // Находим все числовые поля
+    const numInputs = document.querySelectorAll('input[type="number"]');
+    
+    numInputs.forEach((input, index) => {
+        // Устанавливаем цифровую клавиатуру
+        input.setAttribute('inputmode', 'decimal');
+        
+        // Если это не последнее поле, ставим кнопку "Далее"
+        if (index < numInputs.length - 1) {
+            input.setAttribute('enterkeyhint', 'next');
+        } else {
+            // Для последнего поля ставим кнопку "Готово"
+            input.setAttribute('enterkeyhint', 'done');
+        }
+    });
+}
+
+// Запускаем настройку сразу при загрузке
+upgradeInputs();
+	
+	
+	
 </script>
 </body>
 </html>
